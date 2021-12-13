@@ -151,10 +151,16 @@ body{
 }
 
 .cavity {
+    position: absolute;
     display: inline-block;
     border-style: dotted;
     width: 50%;
     height: 50%;
+}
+
+.seed {
+    position: relative;
+    
 }
 
 .column {

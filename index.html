@@ -27,7 +27,9 @@
                     <br>
                     <button class = "play" id ="logb" type = "button" onclick=hideLogInUser()>Login</button>
                     <br>
-                    <button class = "play" id = "guestb" type = "button" onclick=hideLogInGuest()>Jogar como Convidado</button>                
+                    <button class = "play" id = "guestb" type = "button" onclick=hideLogInGuest()>Jogar como Convidado</button>
+                    <br>
+                    <button class = "play" id = "register" type = "button" onclick=register()>Registar</button>                
                 </form>
             </div>
 
@@ -152,17 +154,8 @@
 
             <!--Scores-->
             <div class = "merging_window" id = "scores">
-                <div class = "window_header">
-                    <p>Classificações</p>
-                    <p>Jogos Ganhos por p2: </p>
-                    <p id = victory_p1_class></p>
-                    <p>Jogos Ganhos por p1: </p>
-                    <p id = victory_p2_class></p>
+                <div class = "window_header" id = scores_window>
                     <button class = "close_window" onclick = hideScores()>X</button>
-                </div>
-                <div class = "window_content">
-                    <table>
-                    </table>
                 </div>
             </div>
             
@@ -173,11 +166,12 @@
 
         <!--Bottom Menu-->
         <div class = "bottom_container" id = "bottom_container">
+            <!--Remover as listas-->
             <ul>
                 <li class = "menu_button" onclick=showInstructions()>Instruções</li>
                 <li class = "menu_button" onclick=startGame()>Começar o jogo</li>
-                <li class = "menu_button" onclick=showScores()>Desistir</li>
-                <li class = "menu_button" onclick=showScores()>Visualizar classificações</li>
+                <li class = "menu_button" >Desistir</li>
+                <li class = "menu_button" onclick=getRanking()>Visualizar classificações</li>
                 <li class = "menu_button" id="user">UserName: </li>
             </ul>
     </div>

@@ -62,15 +62,6 @@ function hideInstructions(){
     document.getElementById('end').style.visibility = "hidden"; 
 }
 
-function showScores(){
-    document.getElementById('instructions').style.visibility = "hidden";
-    document.getElementById('scores').style.visibility = "visible";
-}
-
-function hideScores(){
-    document.getElementById('scores').style.visibility = "hidden";
-}
-
 
 var n_cav;
 var n_seed;
@@ -140,11 +131,16 @@ function createCollumn(index) {
     var column = document.createElement('div');
     var cavity_1 = document.createElement('div');
     var cavity_2 = document.createElement('div');
+    var seed_storage_1 = document.createElement('div');
+    var seed_storage_2 = document.createElement('div');
     cavity_1.id = "cavity"+index+"p1";
     cavity_2.id = "cavity"+index+"p2";
+    seed_storage_1 = "storage"+index+"p1";
+    seed_storage_2 = "storage"+index+"p2";
 
     cavity_1.className = "cavity";
     cavity_2.className = "cavity";
+    seed_storage_1.className = "seed_storage"
 
     column.className = "column";
     column.style.width = (100/n_cav)+'%';
@@ -439,8 +435,6 @@ function fillSpots () {
         var seed = document.createElement('div');
         s1.appendChild(seed);
         seed.className = "seed";
-        seed.style.width = (90/p1.storage)+'%';
-        seed.style.height = (90/p1.storage)+'%';
     }
 
     for(let i = 0; i<p2.storage; i++) {
@@ -448,8 +442,6 @@ function fillSpots () {
         var seed = document.createElement('div');
         s2.appendChild(seed);
         seed.className = "seed";
-        seed.style.width = (90/p2.storage)+'%';
-        seed.style.height = (90/p2.storage)+'%';
     }
 
     for(var i = 0; i<cavity.length; i++) {
@@ -460,8 +452,6 @@ function fillSpots () {
                 var seed = document.createElement('div');
                 cavity[i].appendChild(seed);
                 seed.className = "seed";
-                seed.style.width = (90/p1.cav_array[cav_p1])+'%';
-                seed.style.height = (90/p1.cav_array[cav_p1])+'%';
             }
             cav_p1++;
         }
@@ -470,13 +460,101 @@ function fillSpots () {
                 var seed = document.createElement('div');
                 cavity[i].appendChild(seed);
                 seed.className = "seed";
-                seed.style.width = (90/p2.cav_array[cav_p2])+'%';
-                seed.style.height = (90/p2.cav_array[cav_p2])+'%';
             }
             cav_p2++;
         }
     }
 }
 
+//Fazer um pedido genérico para todas as funções
+
+function getRanking() {
+
+    document.getElementById('instructions').style.visibility = "hidden";
+    document.getElementById('scores').style.visibility = "visible";
+
+    if(!XMLHttpRequest) { console.log('XHR not supported'); return; }
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.open('POST','http://twserver.alunos.dcc.fc.up.pt:8008/ranking');
+    
+    xhr.onreadystatechange = function() {
+        if(xhr.readyState == 4 && xhr.status == 200) {
+            const data = JSON.parse(xhr.responseText);
+            console.log(data);
+            insertRanks(data);
+        }
+    }
+    xhr.send(JSON.stringify({}));
+}
+
+// Melhorar
+
+function insertRanks(data) {
+    var window = document.getElementById('scores_window');
+    var ranking = document.createElement('ul');
+    window.appendChild(ranking);
+
+    for(var i = 0; i<data.ranking.length; i++) {
+        var rank = document.createElement('ol');
+        ranking.appendChild(rank);
+        rank.innerHTML = i+':' +data.ranking[i].nick+' '+data.ranking[i].victories+' '+data.ranking[i].games;
+    }
+}
+
+function hideScores(){
+    document.getElementById('scores').style.visibility = "hidden";
+}
+
+function notify() {
+
+}
+
+
+
+function resgister() {
+    var user = document.getElementById('u_name');
+    var pwd = document.getElementById('p_name');
+
+    document.getElementById('instructions').style.visibility = "hidden";
+    document.getElementById('scores').style.visibility = "visible";
+
+    if(!XMLHttpRequest) { console.log('XHR not supported'); return; }
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.open('POST','http://twserver.alunos.dcc.fc.up.pt:8008/register');
+    
+    xhr.onreadystatechange = function() {
+        let response = JSON.parse(xhr.responseText);
+        console.log(response);
+        if(xhr.readyState == 4 && xhr.status == 200) {
+            
+        }
+        else {
+            //Erro da response
+            if (response.error) {
+                //Display da mensagem e fazer reset aos inputs. A vermelho
+            }
+        }
+    }
+    xhr.send(JSON.stringify());
+
+}
+
+/*5 argumentos*/
+function join() {
+
+}
+
+function leave() {
+
+}
+
+
+function update() {
+    
+}
 
 
