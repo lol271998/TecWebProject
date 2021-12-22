@@ -1,13 +1,5 @@
-function hideLogInUser(){
-    hideLogIn();
-    showUsername();
-}
 
-function hideLogInGuest(){
-    hideLogIn();
-    showGuest();
-}
-
+//Hides login and goes to configuration
 function hideLogIn(){
 
     document.getElementById("loginDiv").style.visibility = "hidden";
@@ -16,18 +8,6 @@ function hideLogIn(){
 
     document.getElementById("bottom_container").style.visibility = "visible";
 }
-
-function showUsername() { 
-    var username = document.createTextNode(document.getElementById("u_name").value);
-    document.getElementById("user").appendChild(username);
-}
-
-function showGuest(){
-    guest = document.createTextNode("guest");
-    document.getElementById("user").appendChild(guest);
-}
-
-//Question: Is there a more efficient way to just hide the board or the config depending on where are we in the game?
 
 function showInstructions(){
 
@@ -62,15 +42,15 @@ function hideInstructions(){
     document.getElementById('end').style.visibility = "hidden"; 
 }
 
-
+const group = 48;
+var game_code;
+var user_,pwd_;
 var n_cav;
 var n_seed;
 var difficulty;
 var turn = 1;
 var p1;
 var p2;
-const user = document.getElementById('u_name');
-const pwd = document.getElementById('p_name');
 
 
 /* Also Generates the board */
@@ -93,6 +73,14 @@ function hideConfigAndSubmit() {
     }
 
     n_seed = document.getElementById('n_seed').value;
+
+    createBoard(pc_play);
+}
+
+/* Creates the Board */
+//pc = 0 - vs Person
+//pc = 1 - vs PC
+function createBoard(pc) {
 
     document.getElementById('settingsDiv').style.visibility = "hidden";
     document.getElementById('difficulty').style.visibility = "hidden";
@@ -122,8 +110,14 @@ function hideConfigAndSubmit() {
 
     board.appendChild(storage_2);
 
-    p1 = new Player(user,n_cav,n_seed);
-    p2 = new Player("PC",n_cav,n_seed);
+    if(pc == 0) {
+        p1 = new Player(user_,n_cav,n_seed);
+        p2 = new Player("other_user",n_cav,n_seed);
+    }
+    else {
+        p1 = new Player(user_,n_cav,n_seed);
+        p2 = new Player("PC",n_cav,n_seed);
+    }
 }
 
 /* Creates each column with 1 cavity for each player */
@@ -141,6 +135,7 @@ function createCollumn(index) {
     cavity_1.className = "cavity";
     cavity_2.className = "cavity";
     seed_storage_1.className = "seed_storage"
+    seed_storage_2.className = "seed_storage"
 
     column.className = "column";
     column.style.width = (100/n_cav)+'%';
@@ -188,6 +183,7 @@ var started = 0;
 
 /* Just starts the game */
 function startGame(){
+    join();
     if(started == 1){
         alert("O jogo já começou");
         return;
@@ -196,7 +192,7 @@ function startGame(){
     p1.storage = 0;
     p2.storage = 0;
 
-    document.getElementById('state').style.visibility = "visible";
+    //document.getElementById('state').style.visibility = "visible";
     
     fillSpots();
 }
@@ -409,9 +405,9 @@ function updateStatus () {
     document.getElementById("victory_p2_class").innerHTML = p2.victory;
 }
 
-//Creates Game based on p1 and p2 array
+/* Creates Game based on p1 and p2 array */
 function fillSpots () {
-    updateStatus();
+    //updateStatus();
     var node = document.getElementsByClassName('cavity');
     for(var i = 0; i<node.length; i++) {
         node[i].innerHTML = "";
@@ -421,8 +417,7 @@ function fillSpots () {
     for(var i = 0; i<node.length; i++) {
         node[i].innerHTML = "";
     }
-    
-    //alert("all clean");
+
 
     var cavity = document.getElementsByClassName('cavity');
     let cav_p1 = 0;
@@ -430,20 +425,27 @@ function fillSpots () {
     var s1 = document.getElementById("storage_1");
     var s2 = document.getElementById("storage_2");
     
+    //Filling storage p1
     for(let i = 0; i<p1.storage; i++) {
         //alert("creating: "+p1.cav_array[cav_p1]);
         var seed = document.createElement('div');
         s1.appendChild(seed);
         seed.className = "seed";
+        seed.style.width = 30+'%';
+        seed.style.height = 30+'%';
+        if(p1.storage>9) seed.style.width = 20+'%';
     }
 
+    //Filling storage p2
     for(let i = 0; i<p2.storage; i++) {
         //alert("creating: "+p1.cav_array[cav_p1]);
         var seed = document.createElement('div');
         s2.appendChild(seed);
         seed.className = "seed";
+        if(p2.storage>9) seed.style.width = 20+'%';
     }
 
+    //Filling cavities
     for(var i = 0; i<cavity.length; i++) {
         if(i%2 == 0) {
             //alert(i);
@@ -452,6 +454,8 @@ function fillSpots () {
                 var seed = document.createElement('div');
                 cavity[i].appendChild(seed);
                 seed.className = "seed";
+                seed.style.display = "block-inline";
+                if(p1.cav_array[cav_p1] > 9) seed.style.width = 20+'%';
             }
             cav_p1++;
         }
@@ -460,14 +464,15 @@ function fillSpots () {
                 var seed = document.createElement('div');
                 cavity[i].appendChild(seed);
                 seed.className = "seed";
+                seed.style.display = "block-inline";
+                if(p2.cav_array[cav_p2] > 9) seed.style.width = 20+'%';
             }
             cav_p2++;
         }
     }
 }
 
-//Fazer um pedido genérico para todas as funções
-
+/* Fazer um pedido genérico para todas as funções */
 function getRanking() {
 
     document.getElementById('instructions').style.visibility = "hidden";
@@ -489,10 +494,10 @@ function getRanking() {
     xhr.send(JSON.stringify({}));
 }
 
-// Melhorar
-
+//TODO - Melhorar
 function insertRanks(data) {
     var window = document.getElementById('scores_window');
+    window.innerHTML = '<button class = "close_window" onclick = hideScores()>X</button>';
     var ranking = document.createElement('ul');
     window.appendChild(ranking);
 
@@ -511,14 +516,28 @@ function notify() {
 
 }
 
+//log = 0 - register
+//log = 1 - login
+function register_log(log) {
+    const user = document.getElementById('u_name').value;
+    const pwd = document.getElementById('p_name').value;
+    user_ = user.toString();
+    pwd_ = pwd.toString();
 
+    //Caso não seja introduzido nada nos campos
+    if(user_ == "" || pwd_ == "") {
+        alert("user name ou password inválida");
+        document.location.reload(true);
+        return;
+    }
 
-function resgister() {
-    var user = document.getElementById('u_name');
-    var pwd = document.getElementById('p_name');
+    uname = document.createTextNode(user_);
+    document.getElementById("user").appendChild(uname);
 
-    document.getElementById('instructions').style.visibility = "hidden";
-    document.getElementById('scores').style.visibility = "visible";
+    const user_pass = {"nick": user_,"password": pwd_};
+    console.log(JSON.stringify(user_pass));
+
+    hideLogIn();
 
     if(!XMLHttpRequest) { console.log('XHR not supported'); return; }
 
@@ -527,34 +546,82 @@ function resgister() {
     xhr.open('POST','http://twserver.alunos.dcc.fc.up.pt:8008/register');
     
     xhr.onreadystatechange = function() {
-        let response = JSON.parse(xhr.responseText);
+        var response = (xhr.responseText);
         console.log(response);
         if(xhr.readyState == 4 && xhr.status == 200) {
-            
+            if(log == 1) {
+                alert("login concluido com sucesso");
+            }
+            else alert("registro concluido com sucesso");
+            hideLogIn();
         }
         else {
             //Erro da response
             if (response.error) {
-                //Display da mensagem e fazer reset aos inputs. A vermelho
+                alert("Username registrado com outra password");
+                document.location.reload(true);
+                return;
             }
         }
     }
-    xhr.send(JSON.stringify());
+    xhr.send(JSON.stringify(user_pass));
+}
+
+/* Emparelha os jogadores */
+function join() {
+    
+    const join_a = {"group": group,"nick": user_,"password": pwd_,"size": n_cav,"initial": n_seed};
+
+    console.log(join_a);
+
+    if(!XMLHttpRequest) { console.log('XHR not supported'); return; }
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.open('POST','http://twserver.alunos.dcc.fc.up.pt:8008/join');
+    
+    xhr.onreadystatechange = function() {
+        var response = (xhr.responseText);
+        if(xhr.readyState == 4 && xhr.status == 200) {
+            var responseJSON = JSON.parse(response);
+            console.log(responseJSON.game)
+            update(responseJSON.game);
+        }
+        else {
+            //Erro da response
+            if (response.error) {
+                alert("erro");
+            }
+        }
+    }
+    xhr.send(JSON.stringify(join_a));
+    console.log(game_code);
 
 }
 
-/*5 argumentos*/
-function join() {
+function update(response) {
+    
+    if(!XMLHttpRequest) { console.log('XHR not supported'); return; }
 
+    const xhr = new XMLHttpRequest();
+    
+    xhr.open('GET','http://twserver.alunos.dcc.fc.up.pt:8008/update?nick='+user_+'&game='+response);
+
+    xhr.onreadystatechange = function() {
+        var response = (xhr.responseText);
+        if(xhr.readyState == 4 && xhr.status == 200) {
+            console.log(response);
+        }
+        else {
+            if (response.error) {
+                alert("erro");
+            }
+        }
+    }
 }
 
 function leave() {
 
-}
-
-
-function update() {
-    
 }
 
 
