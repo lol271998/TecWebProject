@@ -403,7 +403,7 @@ function finish_game() {
 }
 
 /* Update status from status board, and classifications */
-function updateStatus (data) {
+function updateStatus(data) {
 
     if(online == 1) {
         document.getElementById('turn').innerHTML = 'Vez: '+ data.board.turn;
@@ -608,10 +608,10 @@ function join() {
         }
     }
     xhr.send(JSON.stringify(join_a));
-    console.log(game_code);
+    console.log('gamecode: '+game_code);
 
 }
-
+//Obter as keys do data e usar isso para aceder aos lados
 function update(gameID) {
     
     const url = 'http://twserver.alunos.dcc.fc.up.pt:8008/update?nick='+user_+'&game='+gameID
@@ -624,8 +624,29 @@ function update(gameID) {
         if(data.board) {
             //Update quando o jogo já começou
             if(started == 1) {
-                const p1_name = p1.uname;
-                const p2_name = p2.uname;
+
+                const p_array = [p1,p2];
+
+                for( i in data.board.sides) {
+                    console.log('sides: '+i);
+                    if(p1.uname == i) {
+                        console.log('player 1');
+                    }
+                    else if (p2.uname == i) {
+                        
+                    }
+                    /*
+                    j.storage = i.store;
+                    for(var k = 0; k<j.cav_array.length; k++) {
+                        j.cav_array[k] = i.pits[k];
+                    }
+                    */
+
+                }
+
+                /*
+                const p1_name = toString(p1.uname);
+                const p2_name = toString(p2.uname);
                 console.log(data);
                 console.log('store de '+p1_name+': '+data.stores.p1_name);
                 
@@ -638,8 +659,9 @@ function update(gameID) {
                     p1.cav_array[i] = data.board.sides.p1_name.pits[i];
                     p2.cav_array[i] = data.board.sides.p2_name.pits[i];
                 }
+                */
                 fillSpots();
-                updateStatus();
+                updateStatus(board);
             }
             //update para começar o jogo
             else startGame(gameID,data);
