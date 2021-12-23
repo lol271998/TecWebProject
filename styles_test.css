@@ -69,20 +69,16 @@ body{
 }
 
 #state {
-    display: flex;
-    width: 300px;
-    height: 78%;
-    position: relative;
-    right: 0px;
+    width: 15%;
+    right: 16px;
     visibility: hidden;
-    color:rgba(255, 255, 255, 0.733);
+    color: rgba(255, 255, 255, 0.733);
     position: absolute;
-    background-image:url("wood.jpg");
+    background-image: url(wood.jpg);
     border-style: outset;
     border-radius: 20px;
-    border-color:rgba(99, 49, 49, 0.795);
+    border-color: rgba(99, 49, 49, 0.795);
     padding: 1%;
-    margin-top: 4.5%;
     display: inline-block;
 }
 

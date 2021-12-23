@@ -85,7 +85,6 @@
                     <br>
                     <br>
                     <button class = "play" id = "config" type = "button" onclick = hideConfigAndSubmit()>Submeter configuraçao</button>
-                    <button class = 'play' id = 'config' type = 'button' onclick = join()>Juntar me a um jogo existente</button>
                 </form>
             </div>
             
@@ -135,22 +134,7 @@
             <!--State of the Game-->
             <div id = "state">
                 <p>Estado do Jogo:</p>
-                <p>Vez: </p>
-                <p id = "turn"></p>    
-                <p id = "player_1">Jogador 1:</p>
-                <ul>
-                    <p>Sementes em storage: </p>
-                    <p id = "storage_seed_p1" ></p>
-                    <p>Vitórias: </p>
-                    <p id = victory_p1></p>
-                </ul>
-                <p id = "player_2">Jogador 2:</p>
-                <ul>
-                    <p>Sementes em storage: </p>
-                    <p id = "storage_seed_p2" ></p>
-                    <p>Vitórias: </p>
-                    <p id = victory_p2></p>
-                </ul>
+                <p id = 'turn'></p>
             </div>
 
             <!--Scores-->
@@ -168,7 +152,7 @@
         <!--Bottom Menu-->
         <div class = "bottom_container" id = "bottom_container">
             <button class = "menu_button" onclick=showInstructions()>Instruções</li>
-            <button class = "menu_button" onclick=startGame()>Começar o jogo</li>
+            <!--<button class = "menu_button" onclick=startGame()>Começar o jogo</li>-->
             <button class = "menu_button" >Desistir</li>
             <button class = "menu_button" onclick=getRanking()>Visualizar classificações</li>
             <button class = "menu_button" id="user">UserName: </li>

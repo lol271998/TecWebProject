@@ -1,5 +1,5 @@
 
-//Hides login and goes to configuration
+/* Hides login and goes to configuration */
 function hideLogIn(){
 
     document.getElementById("loginDiv").style.visibility = "hidden";
@@ -9,12 +9,6 @@ function hideLogIn(){
     document.getElementById("bottom_container").style.visibility = "visible";
 }
 
-function showInstructions(){
-
-    document.getElementById('scores').style.visibility = "hidden";
-    document.getElementById('instructions').style.visibility = "visible";
-
-}
 /*Change Instruction showed*/
 function changeInstruction(flag) {
     if(flag == 1) {
@@ -33,8 +27,17 @@ function changeInstruction(flag) {
         document.getElementById('end').style.visibility = "visible";
     }
 
-}   
+} 
 
+/* Shows instruction Panel */
+function showInstructions(){
+
+    document.getElementById('scores').style.visibility = "hidden";
+    document.getElementById('instructions').style.visibility = "visible";
+
+}  
+
+/* Hides instruction Panel */
 function hideInstructions(){
     document.getElementById('instructions').style.visibility = "hidden";
     document.getElementById('start').style.visibility = "hidden";   
@@ -43,6 +46,10 @@ function hideInstructions(){
 }
 
 const group = 48;
+var started = 0;
+/* online = 1 || offline = 0*/
+var online;
+var eventSource
 var game_code;
 var user_,pwd_;
 var n_cav;
@@ -52,8 +59,30 @@ var turn = 1;
 var p1;
 var p2;
 
+/*Class for each player*/
+class Player {
 
-/* Also Generates the board */
+    constructor (uname,n_cav,n_seed) {
+        this.uname = uname;
+        this.n_cav = n_cav;
+        this.n_seeds = n_seed;
+        this.cav_array = [];
+        this.storage = 0;
+        this.victory = 0;
+        for(var i = 0; i<n_cav; i++) {
+            this.cav_array.push(n_seed);
+        }
+    }
+
+    reset_array() {
+        this.cav_array = [];
+        for(var i = 0; i<n_cav; i++) {
+            this.cav_array.push(n_seed);
+        }
+    }
+}
+
+/* Submits Configuration and generates the board and joins a game or waits*/
 function hideConfigAndSubmit() {
     
     const radios = document.getElementsByName('n_cav');
@@ -70,17 +99,21 @@ function hideConfigAndSubmit() {
     if(pc_play[0].checked) {
         var n = document.getElementById('select_dif');
         difficulty = n.value;
+        online = 0;
+    }
+    else {
+        online = 1;
     }
 
     n_seed = document.getElementById('n_seed').value;
 
-    createBoard(pc_play);
+    createBoard();
+
+    join();
 }
 
 /* Creates the Board */
-//pc = 0 - vs Person
-//pc = 1 - vs PC
-function createBoard(pc) {
+function createBoard() {
 
     document.getElementById('settingsDiv').style.visibility = "hidden";
     document.getElementById('difficulty').style.visibility = "hidden";
@@ -109,15 +142,6 @@ function createBoard(pc) {
     storage_2.className = "storage";
 
     board.appendChild(storage_2);
-
-    if(pc == 0) {
-        p1 = new Player(user_,n_cav,n_seed);
-        p2 = new Player("other_user",n_cav,n_seed);
-    }
-    else {
-        p1 = new Player(user_,n_cav,n_seed);
-        p2 = new Player("PC",n_cav,n_seed);
-    }
 }
 
 /* Creates each column with 1 cavity for each player */
@@ -155,44 +179,26 @@ function createCollumn(index) {
     return column;
 }
 
-/*Class for each player*/
-class Player {
-
-    constructor (uname,n_cav,n_seed) {
-        this.uname = uname;
-        this.n_cav = n_cav;
-        this.n_seeds = n_seed;
-        this.cav_array = [];
-        this.storage = 0;
-        this.victory = 0;
-        for(var i = 0; i<n_cav; i++) {
-            this.cav_array.push(n_seed);
-        }
-    }
-
-    reset_array() {
-        this.cav_array = [];
-        for(var i = 0; i<n_cav; i++) {
-            this.cav_array.push(n_seed);
-        }
-    }
-}
-
-const turnName = ["Jogador 1","Jogador 2"]
-var started = 0;
-
 /* Just starts the game */
-function startGame(){
-    join();
-    if(started == 1){
-        alert("O jogo já começou");
-        return;
-    }
+function startGame(gameID,data) {
+
+    var keys = Object.keys(data.board.sides);
+
+    game_code = gameID;
+
+    p1 = new Player(keys[0],n_cav,n_seed);
+    p2 = new Player(keys[1],n_cav,n_seed);
+    
+    console.log(p1.uname);
+    console.log(p2.uname);
+
     started = 1;
     p1.storage = 0;
     p2.storage = 0;
 
-    //document.getElementById('state').style.visibility = "visible";
+    document.getElementById('state').style.visibility = "visible";
+    
+    updateStatus(data);
     
     fillSpots();
 }
@@ -200,18 +206,27 @@ function startGame(){
 /* Main function that plays the game */
 function play(index,p) {
 
-    if(started != 1){
+    //Caso seja online
+    if(online == 1) {
+        notify(index);
+        update(game_code);
+    }
+
+    //Caso contrário
+    else {
+
+        if(started != 1){
         alert("Carregue em Começar o Jogo");
         return;
-    }
+        }
 
-    if(check_cav(p) == 0){ 
+        if(check_cav(p) == 0){ 
         finish_game();
         return;
-    }
+        }
 
-    //P1 Plays
-    if(p == 1 && turn == 1) {
+        //P1 Plays
+        if(p == 1 && turn == 1) {
         //Number of seeds Available to spread
         let temp = p1.cav_array[index];
         if(temp == 0){
@@ -267,14 +282,14 @@ function play(index,p) {
             fillSpots();
             return;
         }
-    }
-    //Not P1 turn
-    else if(p == 1 && turn == 2){
-        alert("Não é a sua vez de jogar");
-        return;
-    }
-    //P2 Plays
-    if(p == 2 && turn == 2) {
+        }
+        //Not P1 turn
+        else if(p == 1 && turn == 2){
+            alert("Não é a sua vez de jogar");
+            return;
+        }
+        //P2 Plays
+        if(p == 2 && turn == 2) {
         
         //Number of seeds Available to spread
         let temp = p2.cav_array[index];
@@ -331,10 +346,11 @@ function play(index,p) {
             fillSpots();
             return;
         }
-    }
-    else if(p == 2 && turn == 1) {
-        alert("Não é a sua vez de jogar");
-        return;
+        }
+        else if(p == 2 && turn == 1) {
+            alert("Não é a sua vez de jogar");
+            return;
+        }
     }
 }
 
@@ -387,22 +403,19 @@ function finish_game() {
 }
 
 /* Update status from status board, and classifications */
-function updateStatus () {
+function updateStatus (data) {
 
-    if(turn == 1) {
-        document.getElementById("turn").innerHTML=p1.uname.value;
+    if(online == 1) {
+        document.getElementById('turn').innerHTML = 'Vez: '+ data.board.turn;
     }
     else {
-        document.getElementById("turn").innerHTML=p2.uname;
+        if(turn == 1) {
+            document.getElementById("turn").innerHTML= 'Vez: '+ p1.uname;
+        }
+        else {
+            document.getElementById("turn").innerHTML= 'Vez: '+ p2.uname;
+        }
     }
-
-    document.getElementById("storage_seed_p1").innerHTML = p1.storage;
-    document.getElementById("storage_seed_p2").innerHTML = p2.storage;
-
-    document.getElementById("victory_p1").innerHTML = p1.victory;
-    document.getElementById("victory_p2").innerHTML = p2.victory;
-    document.getElementById("victory_p1_class").innerHTML = p1.victory;
-    document.getElementById("victory_p2_class").innerHTML = p2.victory;
 }
 
 /* Creates Game based on p1 and p2 array */
@@ -599,25 +612,40 @@ function join() {
 
 }
 
-function update(response) {
+function update(gameID) {
     
-    if(!XMLHttpRequest) { console.log('XHR not supported'); return; }
+    const url = 'http://twserver.alunos.dcc.fc.up.pt:8008/update?nick='+user_+'&game='+gameID
 
-    const xhr = new XMLHttpRequest();
+    eventSource = new EventSource(url);
     
-    xhr.open('GET','http://twserver.alunos.dcc.fc.up.pt:8008/update?nick='+user_+'&game='+response);
+    eventSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        console.log(data);
+        if(data.board) {
+            //Update quando o jogo já começou
+            if(started == 1) {
+                const p1_name = p1.uname;
+                const p2_name = p2.uname;
+                console.log(data);
+                console.log('store de '+p1_name+': '+data.stores.p1_name);
+                
+                p1.storage = data.stores.p1_name;
+                p2.storage = data.stores.p2_name;
 
-    xhr.onreadystatechange = function() {
-        var response = (xhr.responseText);
-        if(xhr.readyState == 4 && xhr.status == 200) {
-            console.log(response);
-        }
-        else {
-            if (response.error) {
-                alert("erro");
+                console.log('p1.storage: '+p1.storage+'; p2.storage: '+p2.storage);
+
+                for(var i = 0; i<p1.cav_array.length; i++) {
+                    p1.cav_array[i] = data.board.sides.p1_name.pits[i];
+                    p2.cav_array[i] = data.board.sides.p2_name.pits[i];
+                }
+                fillSpots();
+                updateStatus();
             }
+            //update para começar o jogo
+            else startGame(gameID,data);
         }
     }
+
 }
 
 function leave() {
