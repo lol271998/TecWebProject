@@ -99,10 +99,10 @@ function hideConfigAndSubmit() {
     if(pc_play[0].checked) {
         var n = document.getElementById('select_dif');
         difficulty = n.value;
-        online = 0;
+        online = false;
     }
     else {
-        online = 1;
+        online = true;
     }
 
     n_seed = document.getElementById('n_seed').value;
@@ -121,12 +121,13 @@ function createBoard() {
     document.getElementById('board').style.visibility = "visible";
 
     var board = document.getElementById('board');
-    var storage_1 = document.createElement('div');
+    
+    var storage_2 = document.createElement('div');
 
-    storage_1.id = "storage_1";
-    storage_1.className = "storage";
+    storage_2.id = "storage_2";
+    storage_2.className = "storage";
 
-    board.appendChild(storage_1);
+    board.appendChild(storage_2);
     
     var game_area = document.createElement('div');
     game_area.id = "game_area";
@@ -136,12 +137,12 @@ function createBoard() {
         game_area.appendChild(createCollumn(a));
     }
 
-    var storage_2 = document.createElement('div');
+    var storage_1 = document.createElement('div');
 
-    storage_2.id = "storage_2";
-    storage_2.className = "storage";
+    storage_1.id = "storage_1";
+    storage_1.className = "storage";
 
-    board.appendChild(storage_2);
+    board.appendChild(storage_1);
 }
 
 /* Creates each column with 1 cavity for each player */
@@ -151,28 +152,28 @@ function createCollumn(index) {
     var cavity_2 = document.createElement('div');
     var seed_storage_1 = document.createElement('div');
     var seed_storage_2 = document.createElement('div');
-    cavity_1.id = "cavity"+index+"p1";
     cavity_2.id = "cavity"+index+"p2";
-    seed_storage_1 = "storage"+index+"p1";
+    cavity_1.id = "cavity"+index+"p1";
     seed_storage_2 = "storage"+index+"p2";
+    seed_storage_1 = "storage"+index+"p1";
 
-    cavity_1.className = "cavity";
     cavity_2.className = "cavity";
-    seed_storage_1.className = "seed_storage"
+    cavity_1.className = "cavity";
     seed_storage_2.className = "seed_storage"
+    seed_storage_1.className = "seed_storage"
 
     column.className = "column";
     column.style.width = (100/n_cav)+'%';
 
-    column.appendChild(cavity_1);
     column.appendChild(cavity_2);
+    column.appendChild(cavity_1);
 
     
-    cavity_1.onclick = ((fun,pos,p) => {
+    cavity_2.onclick = ((fun,pos,p) => {
         return () => fun(pos,p);
     })(this.play.bind(this),index,1);
 
-    cavity_2.onclick = ((fun,pos,p) => {
+    cavity_1.onclick = ((fun,pos,p) => {
         return () => fun(pos,p);
     })(this.play.bind(this),index,2);
 
@@ -184,10 +185,16 @@ function startGame(gameID,data) {
 
     var keys = Object.keys(data.board.sides);
 
-    game_code = gameID;
+    if(keys[0] == user_) {
+        p1 = new Player(keys[0],n_cav,n_seed);
+        p2 = new Player(keys[1],n_cav,n_seed);
+    }
+    else {
+        p1 = new Player(keys[1],n_cav,n_seed);
+        p2 = new Player(keys[0],n_cav,n_seed);
+    }
 
-    p1 = new Player(keys[0],n_cav,n_seed);
-    p2 = new Player(keys[1],n_cav,n_seed);
+    game_code = gameID;
     
     console.log(p1.uname);
     console.log(p2.uname);
@@ -209,7 +216,6 @@ function play(index,p) {
     //Caso seja online
     if(online == 1) {
         notify(index);
-        update(game_code);
     }
 
     //Caso contrário
@@ -405,7 +411,7 @@ function finish_game() {
 /* Update status from status board, and classifications */
 function updateStatus(data) {
 
-    if(online == 1) {
+    if(online) {
         document.getElementById('turn').innerHTML = 'Vez: '+ data.board.turn;
     }
     else {
@@ -417,6 +423,7 @@ function updateStatus(data) {
         }
     }
 }
+
 
 /* Creates Game based on p1 and p2 array */
 function fillSpots () {
@@ -458,29 +465,55 @@ function fillSpots () {
         if(p2.storage>9) seed.style.width = 20+'%';
     }
 
-    //Filling cavities
-    for(var i = 0; i<cavity.length; i++) {
-        if(i%2 == 0) {
-            //alert(i);
-            for(var j = 0; j<p1.cav_array[cav_p1]; j++) {
-                //alert("creating: "+p1.cav_array[cav_p1]);
+    /* Cavidades foram geradas ao contrário p2 = p1 */
+    if(online) {
+        for(var i = 0; i<n_cav; i++) {
+            cav1 = document.getElementById('cavity'+i+'p1');
+            cav2 = document.getElementById('cavity'+i+'p2');
+
+            for(var j = 0; j<p1.cav_array[i]; j++) {
                 var seed = document.createElement('div');
-                cavity[i].appendChild(seed);
+                cav1.appendChild(seed);
                 seed.className = "seed";
                 seed.style.display = "block-inline";
-                if(p1.cav_array[cav_p1] > 9) seed.style.width = 20+'%';
+                if(p1.cav_array[i] > 9) seed.style.width = 20+'%';
             }
-            cav_p1++;
+            for(var j = 0; j<p2.cav_array[i]; j++) {
+                var seed = document.createElement('div');
+                cav2.appendChild(seed);
+                seed.className = "seed";
+                seed.style.display = "block-inline";
+                if(p2.cav_array[i] > 9) seed.style.width = 20+'%';
+            }
         }
-        else {
-            for(var j = 0; j<p2.cav_array[cav_p2]; j++) {
-                var seed = document.createElement('div');
-                cavity[i].appendChild(seed);
-                seed.className = "seed";
-                seed.style.display = "block-inline";
-                if(p2.cav_array[cav_p2] > 9) seed.style.width = 20+'%';
+    }
+
+    else {
+
+        //Filling cavities
+        for(var i = 0; i<cavity.length; i++) {
+            if(i%2 == 0) {
+                //alert(i);
+                for(var j = 0; j<p1.cav_array[cav_p1]; j++) {
+                    //alert("creating: "+p1.cav_array[cav_p1]);
+                    var seed = document.createElement('div');
+                    cavity[i].appendChild(seed);
+                    seed.className = "seed";
+                    seed.style.display = "block-inline";
+                    if(p1.cav_array[cav_p1] > 9) seed.style.width = 20+'%';
+                }
+                cav_p1++;
             }
-            cav_p2++;
+            else {
+                for(var j = 0; j<p2.cav_array[cav_p2]; j++) {
+                    var seed = document.createElement('div');
+                    cavity[i].appendChild(seed);
+                    seed.className = "seed";
+                    seed.style.display = "block-inline";
+                    if(p2.cav_array[cav_p2] > 9) seed.style.width = 20+'%';
+                }
+                cav_p2++;
+            }
         }
     }
 }
@@ -525,8 +558,33 @@ function hideScores(){
     document.getElementById('scores').style.visibility = "hidden";
 }
 
-function notify() {
+/* Notifica o jogador da jogada */
+function notify(move) {
+    
+    const notify_a = {"nick": user_,"password": pwd_,"game": game_code,"move": move};
 
+    console.log(notify_a);
+
+    if(!XMLHttpRequest) { console.log('XHR not supported'); return; }
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.open('POST','http://twserver.alunos.dcc.fc.up.pt:8008/notify');
+    
+    xhr.onreadystatechange = function() {
+        var response = (xhr.responseText);
+        if(xhr.readyState == 4 && xhr.status == 200) {
+            console.log(response);
+            update(game_code);
+        }
+        else {
+            //Erro da response
+            if (response.error) {
+                console.log(response);
+            }
+        }
+    }
+    xhr.send(JSON.stringify(notify_a));  
 }
 
 //log = 0 - register
@@ -625,43 +683,26 @@ function update(gameID) {
             //Update quando o jogo já começou
             if(started == 1) {
 
-                const p_array = [p1,p2];
-
-                for( i in data.board.sides) {
-                    console.log('sides: '+i);
-                    if(p1.uname == i) {
-                        console.log('player 1');
+                for(key in data.board.sides) {
+                    if(p1.uname == key) {
+                        p1.storage = data.board.sides[key].store;
+                        for(j in data.board.sides[key].pits) {
+                            p1.cav_array[j] = data.board.sides[key].pits[j];
+                        }
                     }
-                    else if (p2.uname == i) {
-                        
+                    else {
+                    p2.storage = data.board.sides[key].store;
+                        for(j in data.board.sides[key].pits) {
+                            p2.cav_array[j] = data.board.sides[key].pits[j];
+                        }
                     }
-                    /*
-                    j.storage = i.store;
-                    for(var k = 0; k<j.cav_array.length; k++) {
-                        j.cav_array[k] = i.pits[k];
-                    }
-                    */
-
                 }
-
-                /*
-                const p1_name = toString(p1.uname);
-                const p2_name = toString(p2.uname);
-                console.log(data);
-                console.log('store de '+p1_name+': '+data.stores.p1_name);
                 
-                p1.storage = data.stores.p1_name;
-                p2.storage = data.stores.p2_name;
+                console.log('player_1 ('+p1.uname+') storage: '+p1.storage+'; pits: '+p1.cav_array);
+                console.log('player_2 ('+p2.uname+') storage: '+p2.storage+'; pits: '+p2.cav_array);
 
-                console.log('p1.storage: '+p1.storage+'; p2.storage: '+p2.storage);
-
-                for(var i = 0; i<p1.cav_array.length; i++) {
-                    p1.cav_array[i] = data.board.sides.p1_name.pits[i];
-                    p2.cav_array[i] = data.board.sides.p2_name.pits[i];
-                }
-                */
                 fillSpots();
-                updateStatus(board);
+                updateStatus(data);
             }
             //update para começar o jogo
             else startGame(gameID,data);

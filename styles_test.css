@@ -167,11 +167,11 @@ body{
 }
 
 #storage_1 {
-    left: 12px;
+    right: 12px;
 }
 
 #storage_2 {
-    right: 12px;
+    left: 12px;
 }
 
 #game_area {
@@ -201,7 +201,7 @@ body{
     filter:brightness(0.5);
 }
 
-div[id*="p1"] {
+div[id*="p2"] {
     margin-top: 150px;
 }
 
