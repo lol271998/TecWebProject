@@ -1,3 +1,18 @@
+//TODO - JSON.parse after readyState == 4
+
+const group = 48;
+var started = 0;
+var online;
+var eventSource
+var game_code;
+var user_,pwd_;
+var n_cav;
+var n_seed;
+var difficulty;
+var turn = 1;
+var p1;
+var p2;
+
 
 /* Hides login and goes to configuration */
 function hideLogIn(){
@@ -9,7 +24,7 @@ function hideLogIn(){
     document.getElementById("bottom_container").style.visibility = "visible";
 }
 
-/*Change Instruction showed*/
+/* Change Instruction showed */
 function changeInstruction(flag) {
     if(flag == 1) {
         document.getElementById('start').style.visibility = "visible";
@@ -45,21 +60,7 @@ function hideInstructions(){
     document.getElementById('end').style.visibility = "hidden"; 
 }
 
-const group = 48;
-var started = 0;
-/* online = 1 || offline = 0*/
-var online;
-var eventSource
-var game_code;
-var user_,pwd_;
-var n_cav;
-var n_seed;
-var difficulty;
-var turn = 1;
-var p1;
-var p2;
-
-/*Class for each player*/
+/* Class for each player */
 class Player {
 
     constructor (uname,n_cav,n_seed) {
@@ -82,7 +83,7 @@ class Player {
     }
 }
 
-/* Submits Configuration and generates the board and joins a game or waits*/
+/* Submits Configuration and generates the board and joins a game or waits */
 function hideConfigAndSubmit() {
     
     const radios = document.getElementsByName('n_cav');
@@ -185,6 +186,7 @@ function startGame(gameID,data) {
 
     var keys = Object.keys(data.board.sides);
 
+    /* Atribui o valor de p1 ao user do browser */
     if(keys[0] == user_) {
         p1 = new Player(keys[0],n_cav,n_seed);
         p2 = new Player(keys[1],n_cav,n_seed);
@@ -193,8 +195,6 @@ function startGame(gameID,data) {
         p1 = new Player(keys[1],n_cav,n_seed);
         p2 = new Player(keys[0],n_cav,n_seed);
     }
-
-    game_code = gameID;
     
     console.log(p1.uname);
     console.log(p2.uname);
@@ -424,7 +424,6 @@ function updateStatus(data) {
     }
 }
 
-
 /* Creates Game based on p1 and p2 array */
 function fillSpots () {
     //updateStatus();
@@ -554,42 +553,19 @@ function insertRanks(data) {
     }
 }
 
+/* Esconde os resultados */
 function hideScores(){
     document.getElementById('scores').style.visibility = "hidden";
 }
 
-/* Notifica o jogador da jogada */
-function notify(move) {
-    
-    const notify_a = {"nick": user_,"password": pwd_,"game": game_code,"move": move};
-
-    console.log(notify_a);
-
-    if(!XMLHttpRequest) { console.log('XHR not supported'); return; }
-
-    const xhr = new XMLHttpRequest();
-
-    xhr.open('POST','http://twserver.alunos.dcc.fc.up.pt:8008/notify');
-    
-    xhr.onreadystatechange = function() {
-        var response = (xhr.responseText);
-        if(xhr.readyState == 4 && xhr.status == 200) {
-            console.log(response);
-            update(game_code);
-        }
-        else {
-            //Erro da response
-            if (response.error) {
-                console.log(response);
-            }
-        }
-    }
-    xhr.send(JSON.stringify(notify_a));  
-}
-
-//log = 0 - register
-//log = 1 - login
+/* Registra ou faz o login do utilizador  */
 function register_log(log) {
+    
+    /*
+    log = 0 - register
+    log = 1 - login
+    */
+
     const user = document.getElementById('u_name').value;
     const pwd = document.getElementById('p_name').value;
     user_ = user.toString();
@@ -608,8 +584,6 @@ function register_log(log) {
     const user_pass = {"nick": user_,"password": pwd_};
     console.log(JSON.stringify(user_pass));
 
-    hideLogIn();
-
     if(!XMLHttpRequest) { console.log('XHR not supported'); return; }
 
     const xhr = new XMLHttpRequest();
@@ -617,21 +591,24 @@ function register_log(log) {
     xhr.open('POST','http://twserver.alunos.dcc.fc.up.pt:8008/register');
     
     xhr.onreadystatechange = function() {
-        var response = (xhr.responseText);
+        var response = xhr.responseText;
         console.log(response);
-        if(xhr.readyState == 4 && xhr.status == 200) {
-            if(log == 1) {
-                alert("login concluido com sucesso");
+        if(xhr.readyState == 4) {
+            var response_JSON = JSON.parse(response);
+            if(xhr.status == 200) {
+                if(log == 1) {
+                    alert("login concluido com sucesso");
+                }
+                else alert("registro concluido com sucesso");
+                hideLogIn();
             }
-            else alert("registro concluido com sucesso");
-            hideLogIn();
-        }
-        else {
-            //Erro da response
-            if (response.error) {
+            else if(response_JSON.error) {
                 alert("Username registrado com outra password");
                 document.location.reload(true);
                 return;
+            }
+            else {
+                console.log("unknown error");
             }
         }
     }
@@ -642,35 +619,103 @@ function register_log(log) {
 function join() {
     
     const join_a = {"group": group,"nick": user_,"password": pwd_,"size": n_cav,"initial": n_seed};
-
-    console.log(join_a);
+    console.log('join_a: '+JSON.stringify(join_a));
 
     if(!XMLHttpRequest) { console.log('XHR not supported'); return; }
 
     const xhr = new XMLHttpRequest();
-
     xhr.open('POST','http://twserver.alunos.dcc.fc.up.pt:8008/join');
     
     xhr.onreadystatechange = function() {
         var response = (xhr.responseText);
         if(xhr.readyState == 4 && xhr.status == 200) {
             var responseJSON = JSON.parse(response);
-            console.log(responseJSON.game)
+            console.log('join -> game_code: '+responseJSON.game)
             update(responseJSON.game);
         }
         else {
             //Erro da response
             if (response.error) {
-                alert("erro");
+                alert("unknown error");
             }
         }
     }
+
     xhr.send(JSON.stringify(join_a));
     console.log('gamecode: '+game_code);
 
 }
-//Obter as keys do data e usar isso para aceder aos lados
+
+/* Abandonar a partida ou a espera */
+function leave() {
+
+    const leave_a = {"game": game_code,"nick": user_,"password":pwd_};   
+    console.log('leave_a: '+leave_a);
+
+    if(!XMLHttpRequest) { console.log('XHR not supported'); return; }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', 'http://twserver.alunos.dcc.fc.up.pt:8008/leave');
+
+    xhr.onreadystatechange = function() {
+        var response = (xhr.responseText);
+        if(xhr.readyState == 4 && xhr.status == 200) {
+            var response_JSON = JSON.parse(response);
+            console.log(response_JSON);
+            if(response == "{}") {
+                alert("Desistiu da espera");
+                eventSource.close();
+                document.location.reload(true);
+            }
+        }
+    }
+
+    xhr.send(JSON.stringify(leave_a));
+
+}
+
+/* Notifica o jogador da jogada */
+function notify(move) {
+    
+    const notify_a = {"nick": user_,"password": pwd_,"game": game_code,"move": move};
+
+    console.log(notify_a);
+
+    if(!XMLHttpRequest) { console.log('XHR not supported'); return; }
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.open('POST','http://twserver.alunos.dcc.fc.up.pt:8008/notify');
+    
+    xhr.onreadystatechange = function() {
+        var response = (xhr.responseText);
+        if(xhr.readyState == 4) {
+            var response_JSON = JSON.parse(response)
+            if(xhr.status == 200) {
+                console.log(response);
+                update(game_code);
+            }
+            else {
+                //Erro da response
+                if (response_JSON.error) {
+                    if(response_JSON.error == 'Not your turn to play' && started == 1){
+                        alert("Não é a sua vez");
+                    }
+                    if(response_JSON.error == 'Not your turn to play' && started == 0) {
+                        alert("O jogo ainda não começou");
+                    }
+                    console.log(response);
+                }
+            }
+        }
+    }
+    xhr.send(JSON.stringify(notify_a));  
+}
+
+/* Propagar o update pelos dois jogadores */
 function update(gameID) {
+
+    game_code = gameID;
     
     const url = 'http://twserver.alunos.dcc.fc.up.pt:8008/update?nick='+user_+'&game='+gameID
 
@@ -678,7 +723,7 @@ function update(gameID) {
     
     eventSource.onmessage = function(event) {
         const data = JSON.parse(event.data);
-        console.log(data);
+        console.log('data: '+JSON.stringify(data));
         if(data.board) {
             //Update quando o jogo já começou
             if(started == 1) {
@@ -707,12 +752,20 @@ function update(gameID) {
             //update para começar o jogo
             else startGame(gameID,data);
         }
+
+        else if(data.winner) {
+            if(data == '"winner": null') {
+                alert("Empate");
+                eventSource.close();
+                document.location.reload(true);
+            }
+            else {
+                alert("Ganhou "+data.winner);
+                eventSource.close();
+                document.location.reload(true);
+            }
+        }
     }
-
-}
-
-function leave() {
-
 }
 
 
