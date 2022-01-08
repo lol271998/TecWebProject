@@ -172,11 +172,11 @@ function createCollumn(index) {
     
     cavity_2.onclick = ((fun,pos,p) => {
         return () => fun(pos,p);
-    })(this.play.bind(this),index,1);
+    })(this.play.bind(this),index,2);
 
     cavity_1.onclick = ((fun,pos,p) => {
         return () => fun(pos,p);
-    })(this.play.bind(this),index,2);
+    })(this.play.bind(this),index,1);
 
     return column;
 }
@@ -214,11 +214,16 @@ function startGame(gameID,data) {
 function play(index,p) {
 
     //Caso seja online
-    if(online == 1) {
-        notify(index);
+    if(online == 1 ) {
+        console.log("player: "+p+", turn: "+turn);
+        if(p == turn) {
+            notify(index);
+        }
+        else {
+            alert("Não é a sua cavidade");
+        }
     }
 
-    //Caso contrário
     else {
 
         if(started != 1){
@@ -727,18 +732,19 @@ function update(gameID) {
         if(data.board) {
             //Update quando o jogo já começou
             if(started == 1) {
-
+                if(p1.uname == data.board.turn) turn = 1;
+                else turn = 2;
                 for(key in data.board.sides) {
                     if(p1.uname == key) {
                         p1.storage = data.board.sides[key].store;
-                        for(j in data.board.sides[key].pits) {
+                        for(var j in data.board.sides[key].pits) {
                             p1.cav_array[j] = data.board.sides[key].pits[j];
                         }
                     }
                     else {
-                    p2.storage = data.board.sides[key].store;
-                        for(j in data.board.sides[key].pits) {
-                            p2.cav_array[j] = data.board.sides[key].pits[j];
+                        p2.storage = data.board.sides[key].store;
+                        for(var j in data.board.sides[key].pits) {
+                            p2.cav_array[data.board.sides[key].pits.length - 1 - j] = data.board.sides[key].pits[j];
                         }
                     }
                 }
