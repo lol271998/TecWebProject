@@ -57,11 +57,11 @@ function doPost(pathname, request, response) {
     let body = '';
     switch(pathname) {
         case '/register':
+            console.log(request.on('data'));
             request
-                .on('data', function(chunk) { body += chunk; })
-                .on('end', function() {
+                .on('data', (chunk) => { body += chunk; })
+                .on('end', () => {
                     try {
-                        alert("hey");
                         query = JSON.parse(body);
                         if(query.nick === '' || query.password === '') {
                             answer.status = 400;
